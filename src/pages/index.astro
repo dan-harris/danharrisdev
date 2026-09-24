@@ -5,7 +5,7 @@ import Layout from "../layouts/Layout.astro";
 
 <Layout title="Dan Harris — danharris.dev">
   <main class="screen relative z-1 max-w-screen overflow-x-auto text-center">
-    <div class="home-page inline-grid grid-cols-[min-content]">
+    <div class="home-page inline-grid grid-cols-[min-content]" data-textmode-fit-scope>
       <section class="home-shell inline-block text-left">
         <div class="ascii-hero relative inline-block mb-line" id="hero-container">
           <pre id="home-ascii" class="textmode-pre home-pre ascii-pre">▓█████▄    ▄████▄   ███▄    █  ██░  ██▒ ▄████▄   ██▀███   ██▀███   ██▓  ▄████▄  
@@ -87,9 +87,151 @@ import Layout from "../layouts/Layout.astro";
     scheduleNext();
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initGlitch);
-  } else {
+  function initFitScale() {
+    const shell = document.querySelector(".home-shell") as HTMLElement | null;
+    const fitScope = document.querySelector("[data-textmode-fit-scope]") as HTMLElement | null;
+    if (!shell || !fitScope) return;
+
+    function calculateFit() {
+      const mobileMatches = window.innerWidth <= 760;
+      if (!mobileMatches) {
+        fitScope?.style.setProperty("--fit-scale", "1");
+        return;
+      }
+
+      const pres = shell?.querySelectorAll("pre") || [];
+      let maxChars = 0;
+      pres.forEach((pre) => {
+        const lines = (pre.textContent || "").split("\n");
+        lines.forEach((line) => {
+          if (line.length > maxChars) maxChars = line.length;
+        });
+      });
+
+      const contentWidth = maxChars * 8 + 40;
+      const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      const scale = Math.min(1, viewportWidth / Math.max(1, contentWidth));
+      fitScope?.style.setProperty("--fit-scale", scale.toFixed(4));
+    }
+
+    window.addEventListener("resize", calculateFit, { passive: true });
+    calculateFit();
+  }
+
+  function initParticles() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const chars = [".", ".", "·", "·", ":", "'", "*"];
+    let layer = document.querySelector(".ascii-particles") as HTMLDivElement | null;
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.className = "ascii-particles";
+      layer.setAttribute("aria-hidden", "true");
+      document.body.append(layer);
+    }
+
+    const isMobile = window.innerWidth <= 760;
+    const count = isMobile ? 38 : 86;
+    const particles: Array<{
+      element: HTMLSpanElement;
+      x: number;
+      y: number;
+      driftX: number;
+      driftY: number;
+      opacity: number;
+      phase: number;
+      phaseStep: number;
+    }> = [];
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+
+    for (let i = 0; i < count; i++) {
+      const span = document.createElement("span");
+      span.textContent = chars[Math.floor(Math.random() * chars.length)] ?? ".";
+      layer.appendChild(span);
+
+      particles.push({
+        element: span,
+        x: Math.random() * width,
+        y: Math.random() * height,
+        driftX: Math.random() * 0.56 - 0.28,
+        driftY: -(Math.random() * 0.52 + 0.2),
+        opacity: Math.random() * 0.32 + 0.3,
+        phase: Math.random() * Math.PI * 2,
+        phaseStep: Math.random() * 0.055 + 0.03,
+      });
+    }
+
+    let pointerX = Number.NaN;
+    let pointerY = Number.NaN;
+
+    window.addEventListener("pointermove", (e) => {
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+    }, { passive: true });
+
+    window.addEventListener("pointerleave", () => {
+      pointerX = Number.NaN;
+      pointerY = Number.NaN;
+    }, { passive: true });
+
+    let lastTime = performance.now();
+
+    function animate(time: number) {
+      const delta = Math.min(64, time - lastTime) / 16.67;
+      lastTime = time;
+
+      for (const p of particles) {
+        p.x += p.driftX * delta;
+        p.y += p.driftY * delta;
+        p.phase += p.phaseStep * delta;
+
+        if (!Number.isNaN(pointerX) && !Number.isNaN(pointerY)) {
+          const dx = p.x - pointerX;
+          const dy = p.y - pointerY;
+          const distSq = dx * dx + dy * dy;
+          const radius = 150;
+          if (distSq < radius * radius) {
+            const dist = Math.sqrt(distSq);
+            const force = ((1 - dist / radius) ** 2) * delta;
+            const unitX = dist > 0 ? dx / dist : Math.cos(p.phase);
+            const unitY = dist > 0 ? dy / dist : Math.sin(p.phase);
+            p.x += unitX * force * 1.8;
+            p.y += unitY * force * 1.2;
+          }
+        }
+
+        if (p.y < -24) p.y = height + 24;
+        if (p.y > height + 24) p.y = -24;
+        if (p.x < -24) p.x = width + 24;
+        if (p.x > width + 24) p.x = -24;
+
+        const flicker = 0.72 + Math.sin(time * 0.0017 + p.phase) * 0.28;
+        p.element.style.opacity = (p.opacity * flicker).toFixed(3);
+        p.element.style.transform = `translate3d(${p.x.toFixed(2)}px, ${p.y.toFixed(2)}px, 0)`;
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("resize", () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+    }, { passive: true });
+
+    requestAnimationFrame(animate);
+  }
+
+  function initAll() {
     initGlitch();
+    initFitScale();
+    initParticles();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAll);
+  } else {
+    initAll();
   }
 </script>

@@ -13,9 +13,11 @@
   --bg: #0c0d10;
   --home-bg: #0a0b11;
   --fg: #fefefe;
-  --link: #93ffd7;
-  --link-hover: #c7ffe9;
-  --link-hover-bg: #153329;
+  --link: #e793ff;
+  --link-hover: #fec7ff;
+  --link-hover-bg: #2e1533;
+  --particle-home: #b47ae2;
+  --particle-home-glow: #6f4b97;
   --text-font: gohu, "Cascadia Code", "Fira Code", "Courier New", monospace;
   --text-size: 14px;
   --home-size: 14px;
@@ -91,7 +93,7 @@ a:focus-visible {
 .ascii-hero {
   position: relative;
   display: inline-block;
-  margin-bottom: var(--text-size);
+  margin-bottom: 44px;
 }
 
 .ascii-hero:before,
@@ -156,6 +158,38 @@ a:focus-visible {
   opacity: var(--ascii-glitch-opacity, 0.72);
 }
 
+/* Floating Particles */
+.ascii-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+.ascii-particles span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--particle-home);
+  font-family: var(--text-font);
+  font-size: calc(var(--text-size) + 1px);
+  line-height: 1;
+  opacity: 0;
+  mix-blend-mode: screen;
+  text-shadow: 0 0 4px var(--particle-home-glow);
+  backface-visibility: hidden;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ascii-particles {
+    display: none;
+  }
+}
+
+/* Responsive & Fit Scaling */
 @media (width <= 760px) {
   :root {
     --mobile-scale: 0.95;
@@ -175,6 +209,8 @@ a:focus-visible {
   }
   .home-pre {
     padding-left: 20px;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 
