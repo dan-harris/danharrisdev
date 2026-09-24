@@ -8,7 +8,7 @@ interface Props {
 
 const {
   title = "Dan Harris — danharris.dev",
-  description = "Personal website and projects by Dan Harris",
+  description = "Frontend Platform Engineer",
 } = Astro.props;
 ---
 
@@ -17,21 +17,14 @@ const {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#93ffd7" />
     <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/assets/fonts/gohu-subset.woff" as="font" type="font/woff" crossorigin />
+    <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+  <body class="font-textmode text-foreground" data-mobile-fit-breakpoint="760">
     <slot />
   </body>
 </html>
-
-<style>
-  html,
-  body {
-    margin: 0;
-    width: 100%;
-    min-height: 100vh;
-  }
-</style>
